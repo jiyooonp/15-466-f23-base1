@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 
 	//create window:
 	SDL_Window *window = SDL_CreateWindow(
-		"gp21 game1: remember to change your title", //TODO: remember to set a title for your game!
+		"gp23 game1: Tobby's Math Class", //TODO: remember to set a title for your game!
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		2*PPU466::ScreenWidth + 8, 2*PPU466::ScreenHeight + 8, //TODO: modify window size if you'd like
 		SDL_WINDOW_OPENGL
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Hide mouse cursor (note: showing can be useful for debugging):
-	//SDL_ShowCursor(SDL_DISABLE);
+	SDL_ShowCursor(SDL_DISABLE);
 
 	//------------ load assets --------------
 	call_load_functions();
@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
 		{ //(2) call the current mode's "update" function to deal with elapsed time:
 			auto current_time = std::chrono::high_resolution_clock::now();
 			static auto previous_time = current_time;
-			float elapsed = std::chrono::duration< float >(current_time - previous_time).count();
+			float elapsed = std::chrono::duration< float >(current_time - previous_time).count(); // is this not 0?
 			previous_time = current_time;
 
 			//if frames are taking a very long time to process,
