@@ -485,32 +485,21 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 				ppu.background[x + PPU466::BackgroundWidth * y] = backgroundInfo;
 			}
 		}
-		// if (needNumber)
-		// {
-		// 	uint16_t needNumberInfo = 0;
-		// 	needNumberInfo |= 100 << 0;
-		// 	needNumberInfo |= paletteIndexbg << 8;
-		// 	ppu.background[0] = needNumberInfo;
-		// }
 	}
 
 	{ // Display the target number on the top of the screen
 		int firstDigit = tobbyTarget / 10;
 		int secondDigit = tobbyTarget % 10;
 
-		uint16_t firstDigitInfo = 0;
-		firstDigitInfo |= (40 + firstDigit) << 0;
-		firstDigitInfo |= 6 << 8;
+		ppu.sprites[20].x = PPU466::ScreenWidth / 2 - 9;
+		ppu.sprites[20].y = PPU466::ScreenHeight - 15;
+		ppu.sprites[20].index = 40 + firstDigit;
+		ppu.sprites[20].attributes = 6;
 
-		uint16_t secondDigitInfo = 0;
-		secondDigitInfo |= (40 + secondDigit) << 0;
-		secondDigitInfo |= 6 << 8;
-
-		int index1 = PPU466::BackgroundWidth * 28 + 15;
-		int index2 = PPU466::BackgroundWidth * 28 + 16;
-
-		ppu.background[index1] = firstDigitInfo;
-		ppu.background[index2] = secondDigitInfo;
+		ppu.sprites[21].x = PPU466::ScreenWidth / 2;
+		ppu.sprites[21].y = PPU466::ScreenHeight - 15;
+		ppu.sprites[21].index = 40 + secondDigit;
+		ppu.sprites[21].attributes = 6;
 	}
 
 	// If dead, display socre in the center
