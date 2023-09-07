@@ -85,6 +85,7 @@ PlayMode::PlayMode() {
 	resetTobby();
 	
 }
+
 void PlayMode::randomNumberSpeed(){
 	if (number_at.size() == 0){
 		// Assign random speed to numbers
@@ -132,9 +133,10 @@ void PlayMode::resetTobby(){
 	tobbyNumber = 0;
 	needNumber = true;
 	currentSymbol = 0;
-	player_at = glm::vec2(0.0f, 0.0f);
+	numbersLeft = 10;
+	// player_at = glm::vec2(0.0f, 0.0f);
 
-	std::cout << "Target is now: "<< tobbyTarget << std::endl;
+	// std::cout << "Target is now: "<< tobbyTarget << std::endl;
 
 	// make all the numbers appear on screen
 	for (uint8_t i = 0; i<number_at.size(); i++){
@@ -228,7 +230,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_SPACE){
 			PlayerSpeed += 10;
-			std::cout << "Player Speed increased to: " << PlayerSpeed << std::endl;
+			// std::cout << "Player Speed increased to: " << PlayerSpeed << std::endl;
 		} else if (evt.key.keysym.sym == SDLK_g){
 			// palyer thinks he has gotten the number correct
 			if (tobbyNumber == tobbyTarget){
@@ -245,6 +247,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		} else if(evt.key.keysym.sym == SDLK_r){
 			std::cout << "Restarting the game!" << std::endl;
 			resetTobby();
+			needNumber = true;
 			tobbyScore = 0;
 			PlayerSpeed = 30.0f;
 		}
@@ -268,6 +271,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	return false;
 }
 void PlayMode::updateTobbyNumber(int currentNumber){
+	numbersLeft--;
 	switch (currentSymbol){
 		case 0:
 			tobbyNumber += currentNumber;
@@ -285,7 +289,10 @@ void PlayMode::updateTobbyNumber(int currentNumber){
 			std::cout << " No operator selected" << std::endl;
 			break;
 	}
-	std::cout << "Tobby: " << tobbyNumber << std::endl;
+	if (numbersLeft <= 0 && tobbyNumber != tobbyTarget){
+		tobbyState = 1; // tobby is dead
+	}
+	// std::cout << "Tobby: " << tobbyNumber << std::endl;
 }
 
 void PlayMode::update(float elapsed) {
@@ -327,7 +334,7 @@ void PlayMode::update(float elapsed) {
 
 	{ // Check if tobby got a number
 		for ( uint8_t i= 0 ; i<number_at.size(); i++){
-			if (std::abs(player_at.x - number_at[i].x) < 8 && std::abs(player_at.y - number_at[i].y) < 8 && number_at[i].w == 0.0f){
+			if (std::abs(player_at.x - number_at[i].x) < 4 && std::abs(player_at.y - number_at[i].y) < 8 && number_at[i].w == 0.0f){
 				if (!needNumber){
 					// ran into a number when it needed a symbol -> dead
 					std::cout << "Tobby is dead cuz it got a number: " <<i+1<< std::endl;
@@ -362,7 +369,7 @@ void PlayMode::update(float elapsed) {
 				symbol_at[i].w = 1.0f;
 				currentSymbol = i;
 				needNumber = true;
-				std:: cout << "Input: " << symbolList[i] << std::endl;
+				// std:: cout << "Input: " << symbolList[i] << std::endl;
 				// if it collides with two, only one will be accounted for
 				break;
 			}

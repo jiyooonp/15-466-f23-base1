@@ -43,7 +43,7 @@ struct PlayMode : Mode {
 	int tobbyState, tobbyScore = 0, tobbyTarget,  tobbyNumber;
 	bool needNumber;
 	int currentSymbol;
-
+	int numbersLeft;
 	// printing 
 	std::vector<char> symbolList = {'+', '-', '*', '/'};
 	//----- drawing handled by PPU466 -----
