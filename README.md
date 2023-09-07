@@ -10,7 +10,7 @@ Screen Shot:
 
 How Your Asset Pipeline Works:
 
-All the assets are stored in the [dist/assets](/15-466-f23-base1/dist/assets/) and generated once when the game starts in the PlayMode.cpp file. It loads the png files and stores them all in tiles, then calls them when drawing. Palettes are shared between same tile types for efficency.
+All the assets are stored in the [dist/assets](/dist/assets/) and generated once when the game starts in the PlayMode.cpp file. It loads the png files and stores them all in tiles, then calls them when drawing. Palettes are shared between same tile types for efficency.
 
 ## How To Play:
 
