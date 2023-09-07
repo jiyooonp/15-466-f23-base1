@@ -17,6 +17,8 @@ struct PlayMode : Mode {
 	virtual void loadAssets(std::string, int , int );
 	virtual void updateTobbyNumber(int);
 	virtual void resetTobby();
+	virtual void randomNumberSpeed();
+	virtual void randomSymbolPosition();
 	//----- game state -----
 
 	//input tracking:

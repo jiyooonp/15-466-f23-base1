@@ -76,26 +76,57 @@ PlayMode::PlayMode() {
 	for(uint16_t i = 0; i < paletteAssetVector.size(); i++)
 		loadAssets(paletteAssetVector[i], 6+i, 10 * (11+i));
 
-	for (int i = 0; i<10; i++){
-		float x = std::rand() % ppu.ScreenWidth;
-		float y = std::rand() % ppu.ScreenHeight;
-
-		number_at.push_back(glm::vec4(x, y, 0.0f, 0.0f));
-		numberSpeed.push_back(std::rand() % 40);
-	}
+	// Assign random speed to numbers
+	randomNumberSpeed();
 
 	// symbols are stationary
-	for (int i = 0; i<4; i++){
-		float x = std::rand() % ppu.ScreenWidth;
-		float y = std::rand() % ppu.ScreenHeight;
-		symbol_at.push_back(glm::vec4(x, y, 0.0f, 0.0f));
-	}
+	randomSymbolPosition();
 
 	resetTobby();
 	
 }
+void PlayMode::randomNumberSpeed(){
+	if (number_at.size() == 0){
+		// Assign random speed to numbers
+		for (int i = 0; i<10; i++){
+			float x = std::rand() % ppu.ScreenWidth;
+			float y = std::rand() % ppu.ScreenHeight;
+
+			number_at.push_back(glm::vec4(x, y, 0.0f, 0.0f));
+			numberSpeed.push_back(std::rand() % 40);
+		}
+	}
+	else{
+		for (int i = 0; i<10; i++){
+			float x = std::rand() % ppu.ScreenWidth;
+			float y = std::rand() % ppu.ScreenHeight;
+
+			number_at[i] = glm::vec4(x, y, 0.0f, 0.0f);
+			numberSpeed[i] = std::rand() % 40;
+		}
+	}
+}
+
+void PlayMode::randomSymbolPosition(){
+	if (symbol_at.size() == 0){
+		for (int i = 0; i<4; i++){
+			float x = std::rand() % ppu.ScreenWidth;
+			float y = std::rand() % ppu.ScreenHeight;
+			symbol_at.push_back(glm::vec4(x, y, 0.0f, 0.0f));
+		}
+	}
+	else{
+		for (int i = 0; i<4; i++){
+			float x = std::rand() % ppu.ScreenWidth;
+			float y = std::rand() % ppu.ScreenHeight;
+
+			symbol_at[i] = glm::vec4(x, y, 0.0f, 0.0f);
+		}
+	}
+}
+
 void PlayMode::resetTobby(){
-	// std::cout << "=======Resetting Tobby==========" << std::endl;
+
 	tobbyState = 0;
 	tobbyTarget = std::rand() % 100;
 	tobbyNumber = 0;
@@ -110,11 +141,7 @@ void PlayMode::resetTobby(){
 		number_at[i].w = 0.0f;
 	}
 	// make all the symbols back to life
-	for (uint8_t i = 0; i<symbol_at.size(); i++){
-		symbol_at[i].w = 0.0f;
-	}
-
-
+	randomSymbolPosition();
 }
 void PlayMode::loadAssets(std::string assetPath, int assetType, int spriteIndex){
 
@@ -173,20 +200,9 @@ void PlayMode::loadAssets(std::string assetPath, int assetType, int spriteIndex)
 			tile.bit1[y] |= bit1 << x;
 
 			ppu.tile_table[spriteIndex] = tile;
-
 		}
 	}
-	// if (spriteIndex == 0){
-	// 	// std::bitset<32> binary(tile.bit0[y]);
-	// 	// std::cout << binary << std::endl;
-	// 	for (int i = 0; i<4; i++){
-	// 		std::cout << ppu.palette_table[assetType][i].w/1 << std::endl;;
-	// 	}
-	// }
-	// std::cout << "created sprite #" << spriteIndex << std::endl;
-
 }
-
 
 PlayMode::~PlayMode() {
 }
@@ -216,19 +232,21 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		} else if (evt.key.keysym.sym == SDLK_g){
 			// palyer thinks he has gotten the number correct
 			if (tobbyNumber == tobbyTarget){
+
 				tobbyScore += 1;
 				// start new state 
 				resetTobby();
-				std::cout << "tobby got it right! Score is now " << tobbyScore << std::endl;
+				std::cout << "Tobby got it right! Score is now " << tobbyScore << std::endl;
 			}
 			else{
-				std::cout << "tobby got it wrong! Tobby died. Total score is " << tobbyScore << std::endl;
+				std::cout << "Tobby got it wrong! Tobby died. Total score is " << tobbyScore << std::endl;
 				tobbyState = 1; // tobby is dead
 			}
 		} else if(evt.key.keysym.sym == SDLK_r){
 			std::cout << "Restarting the game!" << std::endl;
 			resetTobby();
 			tobbyScore = 0;
+			PlayerSpeed = 30.0f;
 		}
 		
 	} else if (evt.type == SDL_KEYUP) {
@@ -267,7 +285,7 @@ void PlayMode::updateTobbyNumber(int currentNumber){
 			std::cout << " No operator selected" << std::endl;
 			break;
 	}
-	std::cout << "tobbyNumber is now " << tobbyNumber << std::endl;
+	std::cout << "Tobby: " << tobbyNumber << std::endl;
 }
 
 void PlayMode::update(float elapsed) {
@@ -282,6 +300,20 @@ void PlayMode::update(float elapsed) {
 	if (down.pressed) player_at.y -= PlayerSpeed * elapsed;
 	if (up.pressed) player_at.y += PlayerSpeed * elapsed;
 
+	// Added after running game multiple times. There are points where Tobby is off screen in x, y, but appears on screen
+	if (player_at.x > static_cast<float>(ppu.ScreenWidth)) {
+		player_at.x -= static_cast<float>(ppu.ScreenWidth);
+	}
+	else if (player_at.x < 0) {
+		player_at.x += static_cast<float>(ppu.ScreenWidth);
+	}
+	if (player_at.y > static_cast<float>(ppu.ScreenHeight)) {
+		player_at.y -= static_cast<float>(ppu.ScreenHeight);
+	}
+	else if (player_at.y < 0) {
+		player_at.y += static_cast<float>(ppu.ScreenHeight);
+	}
+
 	for ( uint8_t i= 0 ; i<number_at.size(); i++){
 		number_at[i].x += numberSpeed[i] * elapsed;
 		number_at[i].y += numberSpeed[i] * elapsed;
@@ -289,13 +321,16 @@ void PlayMode::update(float elapsed) {
 		if (number_at[i].x > ppu.ScreenWidth) number_at[i].x = 0;
 		if (number_at[i].y > ppu.ScreenHeight) number_at[i].y = 0;
 	}
+	// { // Print Tobby location for debugging
+	// 	std::cout << "(" << player_at.x << ", " << player_at.y << ")" << std::endl;
+	// }
 
-	{// check if tobby got a number
+	{ // Check if tobby got a number
 		for ( uint8_t i= 0 ; i<number_at.size(); i++){
 			if (std::abs(player_at.x - number_at[i].x) < 8 && std::abs(player_at.y - number_at[i].y) < 8 && number_at[i].w == 0.0f){
 				if (!needNumber){
 					// ran into a number when it needed a symbol -> dead
-					std::cout << "tobby is dead cuz it got a number: " <<i+1<< std::endl;
+					std::cout << "Tobby is dead cuz it got a number: " <<i+1<< std::endl;
 					tobbyState = 1; // tobby is dead
 					return;
 				}
@@ -313,21 +348,21 @@ void PlayMode::update(float elapsed) {
 		}
 	}
 
-	{// check if tobby got a symbol
-		// symbol order + - * /
+	{ // Check if tobby got a symbol
+	  // symbol order + - * /
 		for (uint8_t i=0; i<symbol_at.size(); i++){
 			if (std::abs(player_at.x - symbol_at[i].x) < 8 && std::abs(player_at.y - symbol_at[i].y) < 8 && symbol_at[i].w == 0.0f){
 				if (needNumber){
 					// ran into a symbol when it needed a number -> dead
 					tobbyState = 1; // tobby is dead
 					// player_at.w = 0.0f; // make tobby dead
-					std::cout << "tobby is dead cuz it got a symbol" << std::endl;
+					std::cout << "Tobby is dead cuz it got a symbol" << std::endl;
 					return;
 				}
 				symbol_at[i].w = 1.0f;
 				currentSymbol = i;
 				needNumber = true;
-				std:: cout << "collected symbol " << symbolList[i] << std::endl;
+				std:: cout << "Input: " << symbolList[i] << std::endl;
 				// if it collides with two, only one will be accounted for
 				break;
 			}
@@ -352,50 +387,38 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		0xff
 	);
 
-	uint8_t tileIndexbg = 101;
-	uint8_t paletteIndexbg = 2;
-	uint16_t backgroundInfo = 0;
-	backgroundInfo |= tileIndexbg << 0;
-	backgroundInfo |= paletteIndexbg << 8;
-	for (uint32_t y = 0; y < PPU466::BackgroundHeight; ++y) {
-		for (uint32_t x = 0; x < PPU466::BackgroundWidth; ++x) {
-			ppu.background[x+PPU466::BackgroundWidth*y] = backgroundInfo;
+	{ // Draw the background
+		uint8_t tileIndexbg = 101;
+		uint8_t paletteIndexbg = 2;
+		uint16_t backgroundInfo = 0;
+		backgroundInfo |= tileIndexbg << 0;
+		backgroundInfo |= paletteIndexbg << 8;
+		for (uint32_t y = 0; y < PPU466::BackgroundHeight; ++y) {
+			for (uint32_t x = 0; x < PPU466::BackgroundWidth; ++x) {
+				ppu.background[x+PPU466::BackgroundWidth*y] = backgroundInfo;
+			}
 		}
 	}
 
-	// { // test character asset loading
-	// 	uint16_t characterTestInfo;
-	// 	for (int i = 0; i<4 ; ++i){
-	// 		characterTestInfo = 0;
-	// 		characterTestInfo |= i << 0;
-	// 		characterTestInfo |= 0 << 8;
-	// 		ppu.background[64 * (i+1)] = characterTestInfo;
-	// 	}
-	// }
-	// display target number
-	// tileIndexbg = 101;
-	// paletteIndexbg = 4;
-	// backgroundInfo |= tileIndexbg << 0;
-	// backgroundInfo |= paletteIndexbg << 8;
+	{// Display the target number on the top of the screen
+		int firstDigit = tobbyTarget/10;
+		int secondDigit = tobbyTarget%10;
 
-	// Display the target number on the top of the screen
-	int firstDigit = tobbyTarget/10;
-	int secondDigit = tobbyTarget%10;
+		uint16_t firstDigitInfo = 0;
+		firstDigitInfo |= (40+firstDigit) << 0;
+		firstDigitInfo |= 6 << 8;
 
-	uint16_t firstDigitInfo = 0;
-	firstDigitInfo |= (40+firstDigit) << 0;
-	firstDigitInfo |= 6 << 8;
-
-	uint16_t secondDigitInfo = 0;
-	secondDigitInfo |= (40+secondDigit) << 0;
-	secondDigitInfo |= 6 << 8;
+		uint16_t secondDigitInfo = 0;
+		secondDigitInfo |= (40+secondDigit) << 0;
+		secondDigitInfo |= 6 << 8;
 
 
-	int index1 = PPU466::BackgroundWidth*28 + 15;
-	int index2 = PPU466::BackgroundWidth*28 + 16;
+		int index1 = PPU466::BackgroundWidth*28 + 15;
+		int index2 = PPU466::BackgroundWidth*28 + 16;
 
-	ppu.background[index1] = firstDigitInfo;
-	ppu.background[index2] = secondDigitInfo;
+		ppu.background[index1] = firstDigitInfo;
+		ppu.background[index2] = secondDigitInfo;
+	}
 
 	// If dead, display socre in the center
 	if (tobbyState == 1){
@@ -426,7 +449,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	}
 
 
-	{//player sprite:
+	{ //Draw player sprite:
 		ppu.sprites[0].x = int8_t(player_at.x);
 		ppu.sprites[0].y = int8_t(player_at.y);
 		if (tobbyState==1){
@@ -439,15 +462,16 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		ppu.sprites[0].attributes = 0;
 	}
 
-	{// symbol sprites
+	{ // Draw symbol sprites
 		for (uint8_t i = 30; i < 34 ; ++i){
 			ppu.sprites[i].x = symbol_at[i-30].x;
 			ppu.sprites[i].y = symbol_at[i-30].y;
 			ppu.sprites[i].index = i;
-			ppu.sprites[i].attributes = 3 + symbol_at[i].w;
+			ppu.sprites[i].attributes = 3;
+			ppu.sprites[i].attributes |= static_cast<int>(symbol_at[i-30].w) << 7;
 		}
 	}
-	{// number sprites
+	{ // Draw number sprites
 		for (uint8_t i = 40; i<50; ++i){
 			ppu.sprites[i].x = number_at[i-40].x;
 			ppu.sprites[i].y = number_at[i-40].y;
